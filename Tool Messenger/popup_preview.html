@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camp Tour Messenger (Preview)</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            width: 320px;
+            margin: 50px auto; /* Căn giữa để dễ xem trên Antigravity Preview */
+            padding: 16px;
+            background-color: #1e1e1e;
+            color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        h2 {
+            margin-top: 0;
+            font-size: 18px;
+            text-align: center;
+            color: #4facfe;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 12px;
+        }
+        label {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 4px;
+            color: #ccc;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            background-color: #2d2d2d;
+            border: 1px solid #444;
+            color: #fff;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .flex-group {
+            display: flex;
+            gap: 10px;
+        }
+        .flex-group .form-group {
+            flex: 1;
+        }
+        input:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+        .status-container {
+            text-align: center;
+            margin: 15px 0;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .status-off { color: #ff4d4d; }
+        .status-on { color: #00e676; }
+        .btn {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .btn-start {
+            background-color: #4facfe;
+            color: white;
+        }
+        .btn-start:hover {
+            background-color: #3895ff;
+        }
+        .btn-stop {
+            background-color: #ff4d4d;
+            color: white;
+        }
+        .btn-stop:hover {
+            background-color: #ff3333;
+        }
+    </style>
+</head>
+<body>
+    <h2>🏕️ Camp Tour Messenger</h2>
+    
+    <div class="form-group">
+        <label for="managerName">Tên Quản Lý (Người gửi tin):</label>
+        <input type="text" id="managerName" placeholder="VD: Nguyễn Văn A">
+    </div>
+    
+    <div class="form-group">
+        <label for="keyword">Từ khóa báo tour:</label>
+        <input type="text" id="keyword" placeholder="VD: ae nhận">
+    </div>
+    
+    <div class="form-group">
+        <label for="replies">Danh sách câu trả lời (cách bằng dấu phẩy):</label>
+        <input type="text" id="replies" placeholder="VD: e, em, dạ em">
+    </div>
+    
+    <div class="flex-group">
+        <div class="form-group">
+            <label for="minDelay">Min Delay (giây):</label>
+            <input type="text" id="minDelay" placeholder="0.5">
+        </div>
+        <div class="form-group">
+            <label for="maxDelay">Max Delay (giây):</label>
+            <input type="text" id="maxDelay" placeholder="2">
+        </div>
+    </div>
+    
+    <div class="status-container">
+        Trạng thái: <span id="statusText" class="status-off">Đang tắt</span>
+    </div>
+    
+    <button id="toggleBtn" class="btn btn-start">Bật Tool</button>
+    
+    <script>
+        // MÔ PHỎNG chrome.storage.local để test UI không cần Extension
+        const mockStorage = {
+            config: {
+                managerName: "Quản Lý A",
+                keyword: "ae nhận",
+                replies: "em, dạ em, có e",
+                minDelay: 0.5,
+                maxDelay: 2
+            },
+            isActive: false
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const managerNameInput = document.getElementById('managerName');
+            const keywordInput = document.getElementById('keyword');
+            const repliesInput = document.getElementById('replies');
+            const minDelayInput = document.getElementById('minDelay');
+            const maxDelayInput = document.getElementById('maxDelay');
+            const statusText = document.getElementById('statusText');
+            const toggleBtn = document.getElementById('toggleBtn');
+
+            // Load saved mock settings
+            managerNameInput.value = mockStorage.config.managerName || '';
+            keywordInput.value = mockStorage.config.keyword || '';
+            repliesInput.value = mockStorage.config.replies || '';
+            minDelayInput.value = mockStorage.config.minDelay || '0.5';
+            maxDelayInput.value = mockStorage.config.maxDelay || '2';
+            
+            updateUI(mockStorage.isActive);
+
+            toggleBtn.addEventListener('click', () => {
+                const newState = !mockStorage.isActive;
+                
+                // Save current config to mock storage
+                mockStorage.config = {
+                    managerName: managerNameInput.value.trim(),
+                    keyword: keywordInput.value.trim(),
+                    replies: repliesInput.value.trim(),
+                    minDelay: parseFloat(minDelayInput.value) || 0.5,
+                    maxDelay: parseFloat(maxDelayInput.value) || 2
+                };
+                mockStorage.isActive = newState;
+                
+                updateUI(newState);
+            });
+
+            function updateUI(isActive) {
+                if (isActive) {
+                    statusText.textContent = 'Đang chờ';
+                    statusText.className = 'status-on';
+                    toggleBtn.textContent = 'Tắt Tool';
+                    toggleBtn.className = 'btn btn-stop';
+                    
+                    // Disable inputs when active
+                    managerNameInput.disabled = true;
+                    keywordInput.disabled = true;
+                    repliesInput.disabled = true;
+                    minDelayInput.disabled = true;
+                    maxDelayInput.disabled = true;
+                } else {
+                    statusText.textContent = 'Đang tắt';
+                    statusText.className = 'status-off';
+                    toggleBtn.textContent = 'Bật Tool';
+                    toggleBtn.className = 'btn btn-start';
+                    
+                    // Enable inputs when inactive
+                    managerNameInput.disabled = false;
+                    keywordInput.disabled = false;
+                    repliesInput.disabled = false;
+                    minDelayInput.disabled = false;
+                    maxDelayInput.disabled = false;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

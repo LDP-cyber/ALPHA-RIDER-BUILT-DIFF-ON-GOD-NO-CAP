@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Camp Tour Messenger",
+  "version": "1.0.0",
+  "description": "Auto-reply tool cho Messenger group chats. Bắt tour nhanh, tự động kill sau khi gửi.",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.messenger.com/*",
+        "*://*.facebook.com/messages/*",
+        "*://*.facebook.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "host_permissions": [
+    "*://*.messenger.com/*",
+    "*://*.facebook.com/*"
+  ]
+}
